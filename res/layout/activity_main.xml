@@ -9,6 +9,7 @@
     tools:context="com.example.proxima.MainActivity" >
 
     <TextView
+        android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hello_world" />
@@ -21,5 +22,23 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="54dp"
         android:text="Discover Peers" />
+	<Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="117dp"
+        android:text="Button" />
+
+    <TextView
+        android:id="@+id/location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/button1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="72dp"
+        android:text="TextView" />
 
 </RelativeLayout>
+
