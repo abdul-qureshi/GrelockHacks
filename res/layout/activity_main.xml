@@ -14,6 +14,15 @@
         android:layout_height="wrap_content"
         android:text="@string/hello_world" />
 
+    <TextView
+        android:id="@+id/location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/button1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="72dp"
+        android:text="TextView" />
+
     <Button
         android:id="@+id/discover"
         android:layout_width="wrap_content"
@@ -26,18 +35,17 @@
         android:id="@+id/button1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView1"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="117dp"
+        android:layout_centerVertical="true"
         android:text="Button" />
 
     <TextView
-        android:id="@+id/location"
+        android:id="@+id/serviceTest"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/button1"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="72dp"
+        android:layout_above="@+id/location"
+        android:layout_alignLeft="@+id/location"
+        android:layout_marginBottom="30dp"
         android:text="TextView" />
 
 </RelativeLayout>
