@@ -1,6 +1,7 @@
 package com.example.proxima;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -19,34 +20,64 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
 
 public class UserListActivity extends Activity {
 	ListView listview;
-	List<User> userData;
+	ArrayList<User> userData;
+	ArrayAdapter<String> itemsAdapter;
+	ArrayList<String> userNames;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_user_list);
 		listview = (ListView) findViewById(R.id.userListView);
+		userData = new ArrayList<User>();
+		userNames = new ArrayList<String>();
+   	    itemsAdapter = 
+			    new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, userNames);
+   	    listview.setAdapter(itemsAdapter);
+   	    
+	   	listview.setOnItemClickListener(new OnItemClickListener(){
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				Intent intent = new Intent(view.getContext(), UserProfileActivity.class);
+				startActivity(intent);
+				
+			}
+	     });    
 		new GetTask().execute();
 	}
 	
-	private class GetTask extends AsyncTask<Void, Void, Void> {
+	private class GetTask extends AsyncTask<Void, Void, ArrayList<User>> {
 	     @Override
-		protected void onPostExecute(Void result) {
-	     }
+		protected void onPostExecute(ArrayList<User> result) {
+	    	 userData = result;
+	    	 if (userData != null) {
+		    	 for (User user : userData) {
+		    		 userNames.add(user.name);
+		    	 }
+		    	 itemsAdapter.notifyDataSetChanged();
+	    	 }
+	    }
 
 		@Override
-		protected Void doInBackground(Void... params) {
+		protected ArrayList<User> doInBackground(Void... params) {
 			try {
-				userData = getPassedUsers();
+				return getPassedUsers();
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -54,7 +85,7 @@ public class UserListActivity extends Activity {
 			return null;
 		}
 		
-		private List<User> getPassedUsers() throws JSONException {
+		private ArrayList<User> getPassedUsers() throws JSONException {
 			HttpClient client = new DefaultHttpClient();
 			HttpGet get = new HttpGet("http://gentle-garden-5610.herokuapp.com/passed_users/" + getMacAddress());
 			
@@ -87,10 +118,11 @@ public class UserListActivity extends Activity {
 						e.printStackTrace();
 					}
 					JSONArray a = object.getJSONArray("PassedUsers");
+					ArrayList<User> userData = new ArrayList<User>();
 		            for (int i = 0; i < a.length(); i++) {
-		            	userData.add(new User(((JSONObject) a.get(i)).getString("id"), ((JSONObject) a.get(i)).getString("display_picture")));
+		            	userData.add(new User(((JSONObject) a.get(i)).getString("name"), ((JSONObject) a.get(i)).getString("display_picture")));
 		            }
-		            return null;
+		            return userData;
 		        }
 			} else {
 				System.out.println("Failed to get passed users");
