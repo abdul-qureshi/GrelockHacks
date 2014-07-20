@@ -140,6 +140,7 @@ public class MainActivity extends Activity implements LocationListener {
 
 		mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this, mPeerListListener);
 		
+
 //		locationText = (TextView) findViewById(R.id.location);
 //		serviceTest = (TextView) findViewById(R.id.serviceTest);
 //		button1 = (Button) findViewById(R.id.button1);
@@ -151,6 +152,7 @@ public class MainActivity extends Activity implements LocationListener {
 //		    	return false;
 //		    }
 //		   });
+
 	    // Get the location manager
 	    locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 	    // Define the criteria how to select the location provider -> use
@@ -171,7 +173,10 @@ public class MainActivity extends Activity implements LocationListener {
 //	    }
 
 	}
-	
+	public void test(){
+		Intent intent = new Intent(this,ChatActivity.class);
+		startActivity(intent);
+	}
 	@Override
     protected void onStart() {
         super.onStart();
