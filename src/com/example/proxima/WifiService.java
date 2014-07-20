@@ -1,6 +1,7 @@
 package com.example.proxima;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -51,7 +53,8 @@ public class WifiService extends Service implements LocationListener{
     WifiReceiver receiverWifi;
     List<ScanResult> wifiList;
     StringBuilder sb = new StringBuilder();
-	private final Map<String, Integer> lastSent = new HashMap<String, Integer>();
+	private final Map<String, Integer> lastSentWifiService = new HashMap<String, Integer>();
+	private List<String> lastSentWifiNameSequence = new ArrayList<String>();
 	private WifiP2pDnsSdServiceRequest serviceRequest;
 	private final Handler handler = new Handler();
 	public static final String TAG = "Proxima";
@@ -193,11 +196,13 @@ public class WifiService extends Service implements LocationListener{
 						WifiInfo info = manager.getConnectionInfo();
 						String address = info.getMacAddress();
 						pass.put("passers", address);
-						Integer lastSentTime = lastSent.get(srcDevice.deviceAddress);
+						Integer lastSentTime = lastSentWifiService.get(srcDevice.deviceAddress);
+						JSONObject endpoint = new JSONObject();
+						endpoint.put("path", "add_pass");
 						if (lastSentTime == null)
-							new PostTask().execute(pass);
+							new PostTask().execute(endpoint, pass);
 						else if ((lastSentTime - System.currentTimeMillis() / 1000L) > 10000)
-							new PostTask().execute(pass);
+							new PostTask().execute(endpoint, pass);
 
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
@@ -270,17 +275,21 @@ public class WifiService extends Service implements LocationListener{
 		@Override
 		protected Integer doInBackground(JSONObject... params) {
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPost httppost = new HttpPost("http://gentle-garden-5610.herokuapp.com/add_pass");
-			httppost.setHeader("Content-type", "application/json");
+
 
 			HttpResponse response = null;
 			try {
-				httppost.setEntity(new StringEntity(params[0].toString()));
+				HttpPost httppost = new HttpPost("http://gentle-garden-5610.herokuapp.com/" + params[0].getString("path"));
+		        httppost.setHeader("Content-type", "application/json");
+				httppost.setEntity(new StringEntity(params[1].toString()));
 				response = httpclient.execute(httppost);
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -293,10 +302,26 @@ public class WifiService extends Service implements LocationListener{
 		public void onReceive(Context c, Intent intent) {
 			sb = new StringBuilder();
 			wifiList = mainWifi.getScanResults();
+			List<String> currentWifis = new ArrayList<String>();
 			for(int i = 0; i < wifiList.size(); i++){
 				sb.append(new Integer(i+1).toString() + ".");
-				sb.append((wifiList.get(i)).toString());
+				currentWifis.add(wifiList.get(i).SSID);
+				sb.append((wifiList.get(i)).SSID);
 				sb.append("\\n");
+			}
+			if (!currentWifis.equals(lastSentWifiNameSequence)) {
+				JSONArray jsArray = new JSONArray(currentWifis);
+				JSONObject wifis = new JSONObject();
+				try {
+					wifis.put("names", jsArray);
+					JSONObject endpoint = new JSONObject();
+					endpoint.put("path", "update_closest");
+					lastSentWifiNameSequence = currentWifis;
+					new PostTask().execute(endpoint, wifis);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			Log.d(TAG, sb.toString());
 		}
