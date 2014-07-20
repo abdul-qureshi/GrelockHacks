@@ -1,10 +1,8 @@
 package com.example.proxima;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +51,7 @@ public class MainActivity extends Activity {
 	IntentFilter mIntentFilter;
 	PeerListListener mPeerListListener;
 	private final List peers = new ArrayList();
+	private final Map<String, Integer> lastSent = new HashMap<String, Integer>();
 	private WifiP2pDnsSdServiceRequest serviceRequest;
 
 	@Override
@@ -131,16 +130,18 @@ public class MainActivity extends Activity {
 					JSONObject pass = new JSONObject();
 					try {
 						pass.put("sender", srcDevice.deviceAddress);
-						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-						Date date = new Date();
-						pass.put("date", dateFormat.format(date));
+						pass.put("date", System.currentTimeMillis() / 1000L);
                         pass.put("latitude", 0);
                         pass.put("longitude", 0);
                         WifiManager manager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                         WifiInfo info = manager.getConnectionInfo();
                         String address = info.getMacAddress();
                         pass.put("passers", address);
-                        new PostTask().execute(pass);
+                        Integer lastSentTime = lastSent.get(srcDevice.deviceAddress);
+                        if (lastSentTime == null)
+                          new PostTask().execute(pass);
+		                else if ((lastSentTime - System.currentTimeMillis() / 1000L) > 10000)
+		                  new PostTask().execute(pass);
 
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
