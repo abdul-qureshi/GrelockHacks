@@ -41,6 +41,12 @@
             android:name=".UserListActivity"
             android:label="@string/title_activity_user_list" >
         </activity>
+        <activity
+            android:name=".UserProfileActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_user_profile"
+            android:theme="@style/FullscreenTheme" >
+        </activity>
     </application>
 
 </manifest>
