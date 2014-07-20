@@ -1,10 +1,9 @@
 package com.example.proxima;
 
+
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +15,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
+import com.example.proxima.WifiService.wifiBinder;
+
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -34,31 +35,63 @@ import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.AsyncTask;
 import android.os.Bundle;
+
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
+
+import android.os.IBinder;
+
+import android.view.View.OnTouchListener;
+import android.view.*;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 import android.widget.Button;
+import android.widget.TextView;
+
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements LocationListener {
+
+
 
 	public static final String TAG = "Proxima";
 	public static final String SERVICE_INSTANCE = "_proximaservice";
 	public static final String TXTRECORD_PROP_AVAILABLE = "available";
-
+	
 	WifiP2pManager mManager;
 	Channel mChannel;
 	BroadcastReceiver mReceiver;
 	IntentFilter mIntentFilter;
 	PeerListListener mPeerListListener;
 	private final List peers = new ArrayList();
+	private final Map<String, Integer> lastSent = new HashMap<String, Integer>();
 	private WifiP2pDnsSdServiceRequest serviceRequest;
+
+	private TextView locationText;
+	private TextView serviceTest;
+	private Button button1;
+	private LocationManager locationManager;
+	private String provider;
+	  
+	WifiService mService;
+	boolean mBound=false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+
 		mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 		mChannel = mManager.initialize(this, getMainLooper(), null);
 		mIntentFilter = new IntentFilter();
@@ -103,9 +136,50 @@ public class MainActivity extends Activity {
 		};
 
 		mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this, mPeerListListener);
+		
+		locationText = (TextView) findViewById(R.id.location);
+		serviceTest = (TextView) findViewById(R.id.serviceTest);
+		button1 = (Button) findViewById(R.id.button1);
+		button1.setOnTouchListener(new OnTouchListener() {
+
+		    @Override
+		    public boolean onTouch(View v, MotionEvent event) {
+		    	updateLocation();
+		    	return false;
+		    }
+		   });
+	    // Get the location manager
+	    locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+	    // Define the criteria how to select the location provider -> use
+	    // default
+	    Criteria criteria = new Criteria();
+	    provider = locationManager.getBestProvider(criteria, false);
+	    Location location = locationManager.getLastKnownLocation(provider);
+	    
+	    // Initialize the location fields
+	    if (location != null) {
+	      System.out.println("Provider " + provider + " has been selected.");
+	      locationText.setText("let's get started");
+	      
+	      onLocationChanged(location);
+	    } else {
+	      locationText.setText("Location not available");
+	      button1.setText("test location");
+	    }
 
 	}
-
+	
+	@Override
+    protected void onStart() {
+        super.onStart();
+        // Bind to LocalService
+//        Intent intent = new Intent(this, WifiService.class);
+//        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        System.out.println("starting service");
+        Intent intent = new Intent(getApplicationContext(),WifiService.class);
+        startService(intent);
+    }
+	
 	private void discoverService() {
 
 		/*
@@ -131,16 +205,18 @@ public class MainActivity extends Activity {
 					JSONObject pass = new JSONObject();
 					try {
 						pass.put("sender", srcDevice.deviceAddress);
-						DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-						Date date = new Date();
-						pass.put("date", dateFormat.format(date));
+						pass.put("date", System.currentTimeMillis() / 1000L);
                         pass.put("latitude", 0);
                         pass.put("longitude", 0);
                         WifiManager manager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
                         WifiInfo info = manager.getConnectionInfo();
                         String address = info.getMacAddress();
                         pass.put("passers", address);
-                        new PostTask().execute(pass);
+                        Integer lastSentTime = lastSent.get(srcDevice.deviceAddress);
+                        if (lastSentTime == null)
+                          new PostTask().execute(pass);
+		                else if ((lastSentTime - System.currentTimeMillis() / 1000L) > 10000)
+		                  new PostTask().execute(pass);
 
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
@@ -196,7 +272,9 @@ public class MainActivity extends Activity {
 
 			}
 		});
+
 	}
+
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -216,6 +294,7 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+
 
 	/* register the broadcast receiver with the intent values to be matched */
 	@Override
@@ -266,4 +345,57 @@ public class MainActivity extends Activity {
             return response.getStatusLine().getStatusCode();
 		}
 	 }
+
+	@Override
+	public void onLocationChanged(Location location) {
+		// TODO Auto-generated method stub
+		locationText.setText("Your altitude:"+location.getAltitude()+",longitude:"+location.getLongitude()+",latitude:"+location.getLatitude());
+	}
+
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onProviderEnabled(String provider) {
+		Toast.makeText(this, "Enabled new provider " + provider,
+		        Toast.LENGTH_SHORT).show();
+		
+	}
+
+	@Override
+	public void onProviderDisabled(String provider) {
+		Toast.makeText(this, "Disabled provider " + provider,
+		        Toast.LENGTH_SHORT).show();
+		
+	}
+	public void updateLocation(){
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000,0,this);
+
+	    Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+	    locationText.setText("Your altitude:"+location.getAltitude()+",longitude:"+location.getLongitude()+",latitude:"+location.getLatitude());
+	    
+//	    serviceTest.setText(mService.testService());
+	    
+		System.out.println("new location");
+	}
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+        	wifiBinder binder = (wifiBinder) service;
+            mService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
 }
