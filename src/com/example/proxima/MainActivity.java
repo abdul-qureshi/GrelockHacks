@@ -99,37 +99,40 @@ public class MainActivity extends Activity implements LocationListener {
 		mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
 		mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
 		mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+		
+		Intent intent = new Intent(this, UserListActivity.class);
+		startActivity(intent);
 
-		final Button discoverButton = (Button) findViewById(R.id.discover);
-		discoverButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Toast.makeText(getApplicationContext(), "Start discovering peers", Toast.LENGTH_LONG).show();
-//				mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-//					@Override
-//					public void onSuccess() {
-//						Toast.makeText(getApplicationContext(), "Found peers", Toast.LENGTH_LONG).show();
-//					}
-//
-//					@Override
-//					public void onFailure(int reasonCode) {
-//						Toast.makeText(getApplicationContext(), "Failed to find peers", Toast.LENGTH_LONG).show();
-//					}
-//				})
-				discoverService();
-			}
-		});
+//		final Button discoverButton = (Button) findViewById(R.id.discover);
+//		discoverButton.setOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				Toast.makeText(getApplicationContext(), "Start discovering peers", Toast.LENGTH_LONG).show();
+////				mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+////					@Override
+////					public void onSuccess() {
+////						Toast.makeText(getApplicationContext(), "Found peers", Toast.LENGTH_LONG).show();
+////					}
+////
+////					@Override
+////					public void onFailure(int reasonCode) {
+////						Toast.makeText(getApplicationContext(), "Failed to find peers", Toast.LENGTH_LONG).show();
+////					}
+////				})
+//				discoverService();
+//			}
+//		});
 
 		mPeerListListener = new PeerListListener() {
 			@Override
 			public void onPeersAvailable(WifiP2pDeviceList peerList) {
-				Toast.makeText(getApplicationContext(), "Peers available", Toast.LENGTH_LONG).show();
+//				Toast.makeText(getApplicationContext(), "Peers available", Toast.LENGTH_LONG).show();
 				// Out with the old, in with the new.
 				peers.clear();
 				peers.addAll(peerList.getDeviceList());
 
 				if (peers.size() == 0) {
-					Toast.makeText(getApplicationContext(), "No devices found", Toast.LENGTH_LONG).show();
+//					Toast.makeText(getApplicationContext(), "No devices found", Toast.LENGTH_LONG).show();
 					return;
 				}
 			}
@@ -137,17 +140,17 @@ public class MainActivity extends Activity implements LocationListener {
 
 		mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this, mPeerListListener);
 		
-		locationText = (TextView) findViewById(R.id.location);
-		serviceTest = (TextView) findViewById(R.id.serviceTest);
-		button1 = (Button) findViewById(R.id.button1);
-		button1.setOnTouchListener(new OnTouchListener() {
-
-		    @Override
-		    public boolean onTouch(View v, MotionEvent event) {
-		    	updateLocation();
-		    	return false;
-		    }
-		   });
+//		locationText = (TextView) findViewById(R.id.location);
+//		serviceTest = (TextView) findViewById(R.id.serviceTest);
+//		button1 = (Button) findViewById(R.id.button1);
+//		button1.setOnTouchListener(new OnTouchListener() {
+//
+//		    @Override
+//		    public boolean onTouch(View v, MotionEvent event) {
+//		    	updateLocation();
+//		    	return false;
+//		    }
+//		   });
 	    // Get the location manager
 	    locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 	    // Define the criteria how to select the location provider -> use
@@ -157,15 +160,15 @@ public class MainActivity extends Activity implements LocationListener {
 	    Location location = locationManager.getLastKnownLocation(provider);
 	    
 	    // Initialize the location fields
-	    if (location != null) {
-	      System.out.println("Provider " + provider + " has been selected.");
-	      locationText.setText("let's get started");
-	      
-	      onLocationChanged(location);
-	    } else {
-	      locationText.setText("Location not available");
-	      button1.setText("test location");
-	    }
+//	    if (location != null) {
+//	      System.out.println("Provider " + provider + " has been selected.");
+//	      locationText.setText("let's get started");
+//	      
+//	      onLocationChanged(location);
+//	    } else {
+//	      locationText.setText("Location not available");
+//	      button1.setText("test location");
+//	    }
 
 	}
 	
@@ -349,7 +352,7 @@ public class MainActivity extends Activity implements LocationListener {
 	@Override
 	public void onLocationChanged(Location location) {
 		// TODO Auto-generated method stub
-		locationText.setText("Your altitude:"+location.getAltitude()+",longitude:"+location.getLongitude()+",latitude:"+location.getLatitude());
+//		locationText.setText("Your altitude:"+location.getAltitude()+",longitude:"+location.getLongitude()+",latitude:"+location.getLatitude());
 	}
 
 	@Override
@@ -375,7 +378,7 @@ public class MainActivity extends Activity implements LocationListener {
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,1000,0,this);
 
 	    Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-	    locationText.setText("Your altitude:"+location.getAltitude()+",longitude:"+location.getLongitude()+",latitude:"+location.getLatitude());
+//	    locationText.setText("Your altitude:"+location.getAltitude()+",longitude:"+location.getLongitude()+",latitude:"+location.getLatitude());
 	    
 //	    serviceTest.setText(mService.testService());
 	    
