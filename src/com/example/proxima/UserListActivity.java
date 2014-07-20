@@ -1,6 +1,7 @@
 package com.example.proxima;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -12,6 +13,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -27,6 +29,7 @@ import android.widget.ListView;
 
 public class UserListActivity extends Activity {
 	ListView listview;
+	List<User> userData;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -35,17 +38,23 @@ public class UserListActivity extends Activity {
 		new GetTask().execute();
 	}
 	
-	private class GetTask extends AsyncTask<Void, Void, String> {
+	private class GetTask extends AsyncTask<Void, Void, Void> {
 	     @Override
-		protected void onPostExecute(String result) {
+		protected void onPostExecute(Void result) {
 	     }
 
 		@Override
-		protected String doInBackground(Void... params) {
-			return getPassedUsers();
+		protected Void doInBackground(Void... params) {
+			try {
+				userData = getPassedUsers();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
 		}
 		
-		private String getPassedUsers() {
+		private List<User> getPassedUsers() throws JSONException {
 			HttpClient client = new DefaultHttpClient();
 			HttpGet get = new HttpGet("http://gentle-garden-5610.herokuapp.com/passed_users/" + getMacAddress());
 			
@@ -77,12 +86,16 @@ public class UserListActivity extends Activity {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-		            return object.toString();
+					JSONArray a = object.getJSONArray("PassedUsers");
+		            for (int i = 0; i < a.length(); i++) {
+		            	userData.add(new User(((JSONObject) a.get(i)).getString("id"), ((JSONObject) a.get(i)).getString("display_picture")));
+		            }
+		            return null;
 		        }
 			} else {
 				System.out.println("Failed to get passed users");
 			}
-			return "";
+			return null;
 		}
 		
 		private String getMacAddress() {
@@ -92,5 +105,13 @@ public class UserListActivity extends Activity {
 		}
 	 }
 	
-
+	class User {
+		String name;
+		String displayUrl;
+		
+		public User(String name, String displayUrl) {
+			this.name = name;
+			this.displayUrl = displayUrl;
+		}
+	}
 }
